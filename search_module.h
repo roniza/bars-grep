@@ -8,6 +8,7 @@
 
 //includes:
 #include "my_str_tools.h"
+#include "switches.h"
 
 //Defines:
 

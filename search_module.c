@@ -20,6 +20,7 @@ int SearchInLine(char* line, char* keyword, int* parameter_status) {
 	int i = 0, j = 0, k = 0;	/*Loop indexes: (k) - main in-line comparison begining index
 												(i) and (j) - in-comparison followage indexes
 												for the line and keyword respectedly */
+	int def_flag = 0;						//flag for backslahed case (\\ \[ \( \. \) \] )
 	int parse_res = 0, search_res = -1;		//Result containers, error flags
 	char upper, lower;						//Boundaries for RegEx case [c1-c2]
 	char buff[99];	///TODO: define later	//string mannipulations buffer
@@ -44,11 +45,21 @@ int SearchInLine(char* line, char* keyword, int* parameter_status) {
 				return -1;
 			}
 			//end of phrase:
-			if (keyword[j] == '\"')
-				return 0;						/*if got to end of phrase => no mismatch in
+			if (keyword[j] == '\"') {
+				if (parameter_status[SWITCH_X] == 0 && line[i] != '\n' && line[i] != '\0')
+					return 1;
+				else
+					return 0;						/*if got to end of phrase => no mismatch in
 												search => found! => return 0*/
+
+			}
 			//RegEx (str1|str2| ... |strM) case:
 			if (keyword[j] == '(') {
+				//RegEx switch check:
+				if (parameter_status[SWITCH_E] != 0) {
+					printf("Error:RegEx switch is off");
+					return -1;
+				}
 				old_m = &(keyword[j + 1]);
 				new_m = &(keyword[j + 1]);
 				ender = my_fnd_chr(old_m, ')');
@@ -56,7 +67,7 @@ int SearchInLine(char* line, char* keyword, int* parameter_status) {
 				/*parse procedure*/
 				while (parse_res == 0) {
 					my_strcpy("", buff);	//clean buffer
-					parse_res = my_parse(old_m, new_m, buff, '|', ')');	//fill buffer with next optional
+					parse_res = my_parse(old_m, &new_m, buff, '|', ')');	//fill buffer with next optional
 					old_m = new_m;										//prepare next iteration
 					my_strcat(buff, ender);								//connect the rest of the key word
 					/*recursive call for search: continue search from where stopped
@@ -71,6 +82,11 @@ int SearchInLine(char* line, char* keyword, int* parameter_status) {
 			}
 			//RegEx [c1 - c2] case:
 			if (keyword[j] == '[') {
+				//RegEx switch check:
+				if (parameter_status[SWITCH_E] != 0) {
+					printf("Error:RegEx switch is off");
+					return -1;
+				}
 				if (keyword[j + 2] != '-' || keyword[j + 4] != ']') {	//validity check
 					printf("Error: illegal syntax\n");
 					return -1;
@@ -82,19 +98,22 @@ int SearchInLine(char* line, char* keyword, int* parameter_status) {
 					printf("Error: illegal range\n");
 					return -1;
 				}
-				j += 4;		//point to end of statement ('])
+				j += 4;		//point to end of statement (']')
 			}
 			//'Defended' case (backslashed spacial characters):
 			if (keyword[j] == '\\') {
 				j++;				//skip backslash
+				def_flag = 1;		//flag it!
 				//update bounds
 				lower = keyword[j];
 				upper = keyword[j];
 			}
 
 			//Comparison:
-			if ((line[i] > upper || line[i] < lower) && line[i] != '.') {	//line character is out of range
-				if (parameter_status[3] == 0/*only if requiered to ignore capitalization*/) {
+			if ((line[i] > upper || line[i] < lower) &&
+				(keyword[j] != '.' || def_flag != 0 ||
+					parameter_status[SWITCH_E] != 0)) {	//line character is out of range
+				if (parameter_status[SWITCH_I] == 0) {	//only if requiered to ignore capitalization
 					if ((line[i] > upper + 'A' - 'a' || line[i] < lower + 'A' - 'a') &&
 						(line[i] > upper - 'A' - 'a' || line[i] < lower - 'A' - 'a')) { //out of capitalized range
 						break;
@@ -108,6 +127,8 @@ int SearchInLine(char* line, char* keyword, int* parameter_status) {
 			j++;
 		}
 		//mismatch found:
+		if (parameter_status[SWITCH_X] == 0)	//in case of -x switch
+			return 1;
 		k++;
 	}
 }

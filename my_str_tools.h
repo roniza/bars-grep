@@ -16,7 +16,7 @@
 //Globals:
 
 //function decleration:
-int my_parse(char* str, char* marker, char* buff, char seperator, char ender);
+int my_parse(char* str, char** p_marker, char* buff, char seperator, char ender);
 int my_strcat(char*head, char* tail); int GetNumBTSpaces(char*str);
 int Ten_power(int exp);
 int my_strcpy(char* source, char* dest);
