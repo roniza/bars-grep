@@ -40,10 +40,11 @@ int main(int argc,char* argv[]) {
 		else
 			my_strcpy(argv[i], file_name);
 	}
-	///TODO:
-	//Get filename from user:
-	/*if (*file_name == '\0')
-		gets(file_name);*/
+	
+	if (*file_name == '\0') {
+		printf("Please enter a file name:\n");
+		gets(file_name);
+	}
 	//open file:
 	fopen_s(&file_ptr,file_name, "r");
 	if (file_ptr == NULL) {

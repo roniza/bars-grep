@@ -23,7 +23,7 @@ int SearchInLine(char* line, char* keyword, int* parameter_status) {
 	int def_flag = 0;						//flag for backslahed case (\\ \[ \( \. \) \] )
 	int parse_res = 0, search_res = -1;		//Result containers, error flags
 	char upper, lower;						//Boundaries for RegEx case [c1-c2]
-	char buff[99];	///TODO: define later	//string mannipulations buffer
+	char buff[2*MAX_LINE_LEN];				//string mannipulations buffer
 	char *old_m;			//where to start current parsing
 	char *new_m;			//where to start next parsing
 	char *ender;			//god knows...
